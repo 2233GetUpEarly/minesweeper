@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <time.h> // time 函数需要的头文件
 #include <stdlib.h> // rand、 srand、malloc 函数需要的头文件
-#include <conio.h>
 #include <windows.h>
 
 void initBoard(char** arr, int rows, int cols, char set);
@@ -27,13 +26,17 @@ void release(char** arr, int rows, int cols);
 
 int getMine();
 
-void myApply(int* rows, int* cols);
-
-int myGetMine();
-
 // 伪图形扫雷实现
 void game();
 
 void gotoxy(int a, int b);
 
 void HideCursor();
+
+int option(int* rows, int* cols);
+
+// 鼠标操作
+void getPower();
+
+void mouseOperateGame(char** mine, char** show, int mouseOperate, int y, int x, int row, int col, int* first, int* win, int FCount);
+
