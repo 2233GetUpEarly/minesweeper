@@ -7,9 +7,9 @@ if(MSVC)
 endif()
 
 
-file(GLOB GAME_SRC_LISTS "src/*.c")
+file(GLOB GAME_SRC_LISTS "src/*.cpp")
 
-add_executable(GameTest "tests/test.c" ${GAME_SRC_LISTS})
+add_executable(GameTest "tests/test.cpp" ${GAME_SRC_LISTS})
 
 target_include_directories(GameTest 
 	PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/"

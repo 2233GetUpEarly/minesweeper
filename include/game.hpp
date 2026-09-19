@@ -24,7 +24,7 @@ char** apply(int* rows, int* cols);
 
 void release(char** arr, int rows, int cols);
 
-int getMine();
+int getMine(int num);
 
 // 伪图形扫雷实现
 void game();

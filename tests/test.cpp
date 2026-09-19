@@ -1,4 +1,4 @@
-#include "game.h"
+#include "game.hpp"
 
 #ifdef _WIN32
 #include <windows.h>

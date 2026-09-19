@@ -1,4 +1,4 @@
-#include "game.h"
+#include "game.hpp"
 
 extern int getMineCount;
 extern HANDLE get1;
@@ -102,6 +102,8 @@ int display(char** arr, char** mine, char** show, int row, int col, int y, int x
 	for (i = 0; i <= col / 2 - 2; i++)
 		printf("--");
 	printf("\n");
+
+	return 0;
 }
 
 void setMine(char** mine, int row, int col, int y, int x)
