@@ -1,4 +1,5 @@
 #include "game.hpp"
+#include <set.hpp>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -24,12 +25,12 @@ void getPower() // 获取权限
 
 void adjustScreen()
 {
-	system("cls");
+	GameSet::clear();
 	printf("Ctrl + 滑动鼠标滑轮调整大小\n");
 	printf("注意：若实际游戏画面大于程序窗口会出现刷屏哦\n");
 	printf("按任意键返回:>\n");
 	char ch = _getch();
-	system("cls");
+	GameSet::clear();
 }
 
 void menu1()
@@ -44,7 +45,7 @@ void menu1()
 
 	while (1)
 	{
-		gotoxy(0, 0);
+		GameSet::cursor(0, 0);
 
 		//读取输入事件
 		ReadConsoleInput(get1, &mouseRecord, 1, &res);
@@ -96,7 +97,7 @@ void menu1()
 			case FROM_LEFT_1ST_BUTTON_PRESSED:
 				if ((y == 1) && (4 <= x && x <= 21))
 				{
-					system("cls"); // 先清屏
+					GameSet::clear();	// 先清屏
 					game();
 					getPower();
 				}
@@ -108,7 +109,7 @@ void menu1()
 				}
 				if ((y == 3) && (4 <= x && x <= 21))
 				{
-					system("cls");// 先清屏
+					GameSet::clear(); // 先清屏
 					printf("%s\n", "退出游戏");
 					exitgame = 1;
 				}
@@ -135,7 +136,7 @@ int option(int* rows, int* cols)
 	int x = 0;
 	while (1)
 	{
-		gotoxy(0, 0); // 固定画面
+		GameSet::cursor(0, 0); // 固定画面
 
 		//读取输入事件
 		ReadConsoleInput(get1, &mouseRecord, 1, &res);
@@ -206,7 +207,7 @@ void game()
 	int rows = 0;
 	int cols = 0;
 	int num = option(&rows, &cols);
-	system("cls");
+	GameSet::clear();
 	if (num < 0)
 		return;
 	char** mine = apply(&rows, &cols);
@@ -225,7 +226,7 @@ void game()
 void test()
 {
 	get1 = GetStdHandle(STD_INPUT_HANDLE);
-	HideCursor();
+	GameSet::hide_cursor();
 	srand((unsigned int)time(NULL)); // 使rand函数产生伪随机数
 	menu1();
 	CloseHandle(get1);

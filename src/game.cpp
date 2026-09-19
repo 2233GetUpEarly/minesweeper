@@ -1,25 +1,11 @@
 #include "game.hpp"
+#include <set.hpp>
 
 extern int getMineCount;
 extern HANDLE get1;
 extern DWORD get2;
 extern INPUT_RECORD mouseRecord;
 extern DWORD res;
-
-void gotoxy(int a, int b)
-{
-	HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
-	COORD pos;
-	pos.X = a;
-	pos.Y = b;
-	SetConsoleCursorPosition(handle, pos);
-}
-
-void HideCursor()
-{
-	CONSOLE_CURSOR_INFO cursor_info = { 1, 0 };
-	SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), &cursor_info);
-}
 
 void initBoard(char** arr, int rows, int cols, char set)
 {
@@ -211,7 +197,7 @@ void findMine(char** mine, char** show, int row, int col)
 
 	while (1)
 	{
-		gotoxy(0, 0);
+		GameSet::cursor(0, 0);
 
 		ReadConsoleInput(get1, &mouseRecord, 1, &res);
 		//获取鼠标当前位置
@@ -229,7 +215,7 @@ void findMine(char** mine, char** show, int row, int col)
 				printf("***\033[41m  %6s    \033[0m***\n", "返回");
 				if (mouseOperate == FROM_LEFT_1ST_BUTTON_PRESSED)
 				{
-					system("cls");
+					GameSet::clear();
 					break;
 				}
 			}
@@ -241,7 +227,7 @@ void findMine(char** mine, char** show, int row, int col)
 		{
 			if (winTime)
 			{
-				system("cls");
+				GameSet::clear();
 				getPower();
 				winTime = 0;
 			}
@@ -254,7 +240,7 @@ void findMine(char** mine, char** show, int row, int col)
 				printf("*****\033[41m  %6s    \033[0m*****\n", "返回");
 				if (mouseOperate == FROM_LEFT_1ST_BUTTON_PRESSED)
 				{
-					system("cls");
+					GameSet::clear();
 					break;
 				}
 			}
@@ -265,7 +251,7 @@ void findMine(char** mine, char** show, int row, int col)
 		{
 			if (falseTime)
 			{
-				system("cls");
+				GameSet::clear();
 				getPower();
 				falseTime = 0;
 			}
@@ -278,7 +264,7 @@ void findMine(char** mine, char** show, int row, int col)
 				printf("*****\033[41m  %6s    \033[0m*****\n", "返回");
 				if (mouseOperate == FROM_LEFT_1ST_BUTTON_PRESSED)
 				{
-					system("cls");
+					GameSet::clear();
 					break;
 				}
 			}
