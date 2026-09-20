@@ -5,7 +5,10 @@
 #include <stdio.h>
 #include <time.h> // time 函数需要的头文件
 #include <stdlib.h> // rand、 srand、malloc 函数需要的头文件
+
+#ifdef _WIN32
 #include <windows.h>
+#endif
 
 struct MouseEvent;
 

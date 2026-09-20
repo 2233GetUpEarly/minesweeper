@@ -56,7 +56,7 @@ int GameSet::platform_read(char* buf, int len)
     }
     return static_cast<int>(read);
 #else
-
+    return static_cast<int>(read(STDIN_FILENO, buf, len));
 #endif
 }
 
@@ -66,7 +66,7 @@ void GameSet::platform_write(const std::string& str)
     DWORD written = 0;
     WriteFile(mouse_data_.handle_out, str.data(), static_cast<DWORD>(str.size()), &written, nullptr);
 #else
-
+    write(STDOUT_FILENO, str.data(), str.size());
 #endif
 }
 
@@ -190,7 +190,13 @@ bool GameSet::platform_init()
 
     return true;
 #else
-
+    tcgetattr(STDIN_FILENO, &mouse_data_.old_termios);
+    termios t = mouse_data_.old_termios;
+    t.c_lflag &= ~(ICANON | ECHO);
+    t.c_cc[VMIN] = 1;
+    t.c_cc[VTIME] = 0;
+    tcsetattr(STDIN_FILENO, TCSANOW, &t);
+    return true;
 #endif
 }
 
@@ -206,6 +212,6 @@ void GameSet::platform_restore()
         SetConsoleMode(mouse_data_.handle_out, mouse_data_.old_out_mode);
     }
 #else
-
+    tcsetattr(STDIN_FILENO, TCSANOW, &mouse_data_.old_termios);
 #endif
 }

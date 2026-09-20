@@ -16,7 +16,7 @@ void adjustScreen()
 	printf("Ctrl + 滑动鼠标滑轮调整大小\n");
 	printf("注意：若实际游戏画面大于程序窗口会出现刷屏哦\n");
 	printf("按任意键返回:>\n");
-	char ch = _getch();
+	char ch = getch();
 	GameSet::clear();
 }
 

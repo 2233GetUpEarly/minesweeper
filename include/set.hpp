@@ -99,7 +99,7 @@ private:
 		DWORD old_in_mode = 0;
 		DWORD old_out_mode = 0;
 #elif
-
+		termios old_termios;
 #endif
 	};
 
