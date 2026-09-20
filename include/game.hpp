@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <time.h> // time 函数需要的头文件
 #include <stdlib.h> // rand、 srand、malloc 函数需要的头文件
+#include <vector>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -12,36 +13,48 @@
 
 struct MouseEvent;
 
-void initBoard(char** arr, int rows, int cols, char set);
+struct GameData
+{
+	std::vector<std::vector<char>> mine;
+	std::vector<std::vector<char>> show;
+	int rows;
+	int cols;
+	int mine_count;
+	int row;
+	int col;
+	int win;
+	int begin_time;
+	int first_operate;
+};
 
-int display(char** arr, int row, int col, int y, int x, int* time);
+class Game
+{
+public:
 
-void setMine(char** mine, int row, int col, int y, int x);
+	using Array = std::vector<std::vector<char>>;
 
-void findMine(char** mine, char** show, int row, int col);
+	Game();
 
-void spread(char** mine, char** show, int y, int x, int* win, int row, int col);
+	~Game();
 
-void numberSpread(char** mine, char** show, int y, int x, int num, int* win, int row, int col);
+	GameData& get_game_data();
 
-// 动态扫雷实现
-char** apply(int* rows, int* cols);
+	void get_mine(int num);
 
-void game_release(char** arr, int rows, int cols);
+	void init_board(Game::Array& arr, char set);
 
-int getMine(int num);
+	void set_mine(int y, int x);
 
-// 伪图形扫雷实现
-void game();
+	int mine_count(int y, int x);
 
-void gotoxy(int a, int b);
+	void spread(int y, int x);
 
-void HideCursor();
+	void number_spread(int y, int x, int mine_number);
 
-int option(int* rows, int* cols);
+private:
 
-// 鼠标操作
-void getPower();
+private:
 
-void mouseOperateGame(char** mine, char** show, MouseEvent event, int y, int x, int row, int col, int* first, int* win, int FCount);
+	GameData data_;
+};
 
