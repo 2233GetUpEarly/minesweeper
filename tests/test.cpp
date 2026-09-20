@@ -1,5 +1,7 @@
 #include "game.hpp"
 #include <set.hpp>
+#include <iostream>
+#include <chrono>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -7,21 +9,6 @@
 #endif
 
 int getMineCount = 0;
-
-//定义句柄变量
-HANDLE get1;
-//权限准备
-DWORD get2 = ENABLE_EXTENDED_FLAGS | ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT;
-//定义输入事件结构体
-INPUT_RECORD mouseRecord;
-//用于存储读取记录
-DWORD res;
-
-void getPower() // 获取权限
-{
-	if (!SetConsoleMode(get1, get2))
-		fprintf(stderr, "%s\n", "SetConsoleMode");
-}
 
 void adjustScreen()
 {
@@ -33,9 +20,11 @@ void adjustScreen()
 	GameSet::clear();
 }
 
+GameSet gs;
+
 void menu1()
 {
-	getPower();
+	gs.open_mouse_mode();
 	char a = 0;
 	int y = 0;
 	int x = 0;
@@ -43,15 +32,44 @@ void menu1()
 
 	int judge = 1;
 
-	while (1)
-	{
-		GameSet::cursor(0, 0);
+	std::string buf;
+	char c;
 
-		//读取输入事件
-		ReadConsoleInput(get1, &mouseRecord, 1, &res);
-		//获取鼠标当前位置
-		y = mouseRecord.Event.MouseEvent.dwMousePosition.Y;
-		x = mouseRecord.Event.MouseEvent.dwMousePosition.X;
+	auto lastClick = std::chrono::steady_clock::now() - std::chrono::seconds(1);
+	while (true)
+	{
+		MouseEvent event;
+		GameSet::cursor(0, 0);
+		int n = gs.platform_read(&c, 1);
+		//int n = platformRead(&c, 1);
+		if (n <= 0) continue;
+
+		// Ctrl+C 在原始模式下不会自动退出，这里手动处理
+		if (c == 0x03) break;
+
+		buf += c;
+
+		// 收到 ESC 开头，尝试解析完整序列
+		if (!buf.empty() && buf[0] == '\033')
+		{
+			// 只有以 ESC [ < 开头且以 M/m 结尾才尝试解析
+			if (buf.size() >= 3 && buf[0] == '\033' && buf[1] == '[' && buf[2] == '<' &&
+				(buf.back() == 'M' || buf.back() == 'm'))
+			{
+				event = gs.get_mouse_event(buf);
+				//std::cout << event.mouse_x << " " << event.mouse_y << std::endl;
+				buf.clear();
+			}
+			// 容错：如果累积过长仍不成序列，丢弃，防止内存增长
+			if (buf.size() > 64) buf.clear();
+		}
+		else
+		{
+			// 普通按键，直接清掉
+			buf.clear();
+		}
+		y = event.mouse_y;
+		x = event.mouse_x;
 
 		char arr[3][13] = { "开始游戏", "调整画面", "退出游戏" };
 		printf("*************************\n");
@@ -78,71 +96,80 @@ void menu1()
 		printf("*************************\n");
 		printf("若点一下无反应可重新点一下\n");
 
-		int mouseOperate = 0;
-		// 利用GetAsyncKeyState和judge变量可以在getch()得到字符后
-		// 对鼠标异常进行标记，使下一次GetAsyncKeyState
-		// 不会对异常信息进行处理，这时只需再点击左键，
-		// 代码会获取新的信息，避免异常信息停留。
-		if (judge)
-			mouseOperate = mouseRecord.Event.MouseEvent.dwButtonState;
-		else if (GetAsyncKeyState(VK_LBUTTON))
-			judge = 1;
-		else
-			mouseOperate = 0;
+		int mouseOperate = event.operate;
 
-		if (mouseRecord.EventType == MOUSE_EVENT)
+		if (event.operate == left_click && event.action == ma_nothing)
 		{
-			switch (mouseOperate)
+			if ((y == 1) && (4 <= x && x <= 21))
 			{
-			case FROM_LEFT_1ST_BUTTON_PRESSED:
-				if ((y == 1) && (4 <= x && x <= 21))
+				auto now = std::chrono::steady_clock::now();
+				if (std::chrono::duration_cast<std::chrono::milliseconds>(now - lastClick).count() > 166)
 				{
+					// 太近了，忽略
 					GameSet::clear();	// 先清屏
 					game();
-					getPower();
 				}
-				if ((y == 2) && (4 <= x && x <= 21))
-				{
-					adjustScreen();
-					judge = 0;
-					getPower();
-				}
-				if ((y == 3) && (4 <= x && x <= 21))
-				{
-					GameSet::clear(); // 先清屏
-					printf("%s\n", "退出游戏");
-					exitgame = 1;
-				}
-				break;
+			}
+			if ((y == 2) && (4 <= x && x <= 21))
+			{
+				adjustScreen();
+				judge = 0;
+			}
+			if ((y == 3) && (4 <= x && x <= 21))
+			{
+				GameSet::clear(); // 先清屏
+				printf("%s\n", "退出游戏");
+				exitgame = 1;
 			}
 		}
-		// 利用GetAsyncKeyState和judge变量可以在getch()得到字符后
-		// 对鼠标异常进行标记，使下一次GetAsyncKeyState
-		// 不会对异常信息进行处理，这时只需再点击左键，
-		// 代码会获取新的信息，避免异常信息停留。
-		GetAsyncKeyState(VK_LBUTTON);
-		Sleep(50);
+
 		if (exitgame)
 			break;
 	}
+	gs.close_mouse_mode();
 }
 
 int option(int* rows, int* cols)
 {
-	GetAsyncKeyState(VK_LBUTTON);
-	getPower();
+	gs.open_mouse_mode();
+	std::string buf;
+	char c;
 	char a = 0;
 	int y = 0;
 	int x = 0;
 	while (1)
 	{
-		GameSet::cursor(0, 0); // 固定画面
+		MouseEvent event;
+		GameSet::cursor(0, 0);
+		int n = gs.platform_read(&c, 1);
+		//int n = platformRead(&c, 1);
+		if (n <= 0) continue;
 
-		//读取输入事件
-		ReadConsoleInput(get1, &mouseRecord, 1, &res);
-		//获取鼠标当前位置
-		y = mouseRecord.Event.MouseEvent.dwMousePosition.Y;
-		x = mouseRecord.Event.MouseEvent.dwMousePosition.X;
+		// Ctrl+C 在原始模式下不会自动退出，这里手动处理
+		if (c == 0x03) break;
+
+		buf += c;
+
+		// 收到 ESC 开头，尝试解析完整序列
+		if (!buf.empty() && buf[0] == '\033')
+		{
+			// 只有以 ESC [ < 开头且以 M/m 结尾才尝试解析
+			if (buf.size() >= 3 && buf[0] == '\033' && buf[1] == '[' && buf[2] == '<' &&
+				(buf.back() == 'M' || buf.back() == 'm'))
+			{
+				event = gs.get_mouse_event(buf);
+				buf.clear();
+			}
+			// 容错：如果累积过长仍不成序列，丢弃，防止内存增长
+			if (buf.size() > 64) buf.clear();
+		}
+		else
+		{
+			// 普通按键，直接清掉
+			buf.clear();
+		}
+		y = event.mouse_y;
+		x = event.mouse_x;
 
 		char arr[4][20] = { "1.初级(9×9)", "2.中级(16×16)", "3.高级(16×30)", "返回" };
 
@@ -165,40 +192,33 @@ int option(int* rows, int* cols)
 			printf("****   %-14s****\n", &arr[3][0]);
 		printf("*************************\n");
 
-		int mouseOperate = mouseRecord.Event.MouseEvent.dwButtonState;
-
-		if (mouseRecord.EventType == MOUSE_EVENT)
+		if (event.operate == left_click && event.action == ma_nothing)
 		{
-			switch (mouseOperate)
+			if ((y == 1) && (4 <= x && x <= 22))
 			{
-			case FROM_LEFT_1ST_BUTTON_PRESSED:
-				if ((y == 1) && (4 <= x && x <= 22))
-				{
-					*rows = 11;
-					*cols = 11;
-					return 1;
-				}
-				if ((y == 2) && (4 <= x && x <= 22))
-				{
-					*rows = 18;
-					*cols = 18;
-					return 2;
-				}
-				if ((y == 3) && (4 <= x && x <= 22))
-				{
-					*rows = 18;
-					*cols = 32;
-					return 3;
-				}
-				if ((y == 4) && (4 <= x && x <= 22))
-				{
-					return -1;
-				}
-				break;
+				*rows = 11;
+				*cols = 11;
+				return 1;
+			}
+			if ((y == 2) && (4 <= x && x <= 22))
+			{
+				*rows = 18;
+				*cols = 18;
+				return 2;
+			}
+			if ((y == 3) && (4 <= x && x <= 22))
+			{
+				*rows = 18;
+				*cols = 32;
+				return 3;
+			}
+			if ((y == 4) && (4 <= x && x <= 22))
+			{
+				return -1;
 			}
 		}
-		Sleep(50);
 	}
+	gs.close_mouse_mode();
 	return 1;
 }
 
@@ -219,17 +239,15 @@ void game()
 	initBoard(mine, rows, cols, '0');
 	initBoard(show, rows, cols, '*');
 	findMine(mine, show, row, col);
-	release(mine, rows, cols);
-	release(show, rows, cols);
+	game_release(mine, rows, cols);
+	game_release(show, rows, cols);
 }
 
 void test()
 {
-	get1 = GetStdHandle(STD_INPUT_HANDLE);
 	GameSet::hide_cursor();
 	srand((unsigned int)time(NULL)); // 使rand函数产生伪随机数
 	menu1();
-	CloseHandle(get1);
 }
 
 int main()

@@ -1,11 +1,9 @@
 #include "game.hpp"
 #include <set.hpp>
+#include <chrono>
 
 extern int getMineCount;
-extern HANDLE get1;
-extern DWORD get2;
-extern INPUT_RECORD mouseRecord;
-extern DWORD res;
+extern GameSet gs;
 
 void initBoard(char** arr, int rows, int cols, char set)
 {
@@ -14,7 +12,7 @@ void initBoard(char** arr, int rows, int cols, char set)
 			arr[i][j] = set;
 }
 
-int display(char** arr, char** mine, char** show, int row, int col, int y, int x, int time1, int* first, int* win, int mouseOperate)
+int display(char** arr, char** mine, char** show, int row, int col, int y, int x, int time1, int* first, int* win, MouseEvent event)
 {
 	int FCount = 0;
 	// 将游戏时间生命周期延长，防止游戏完成打印为0
@@ -50,10 +48,7 @@ int display(char** arr, char** mine, char** show, int row, int col, int y, int x
 			if (i == y && j * 2 == x + 1)
 			{
 				printf("\033[42m%c\033[0m ", arr[i][j]);
-				if (mouseRecord.EventType == MOUSE_EVENT)
-				{
-					mouseOperateGame(mine, show, mouseOperate, i, j, row, col, first, win, FCount);
-				}
+				mouseOperateGame(mine, show, event, i, j, row, col, first, win, FCount);
 			}
 			else
 			{
@@ -142,11 +137,10 @@ int mineCount(char** mine, int y, int x)
 	return count;
 }
 
-void mouseOperateGame(char** mine, char** show, int mouseOperate, int y, int x, int row, int col, int* first, int* win, int FCount)
+void mouseOperateGame(char** mine, char** show, MouseEvent event, int y, int x, int row, int col, int* first, int* win, int FCount)
 {
-	switch (mouseOperate)
+	if (event.operate == left_click && event.action == ma_nothing)
 	{
-	case  FROM_LEFT_1ST_BUTTON_PRESSED:
 		if (show[y][x] == '*')                    // 判断输入的坐标是否被占用
 		{
 			if (*first)
@@ -173,17 +167,17 @@ void mouseOperateGame(char** mine, char** show, int mouseOperate, int y, int x, 
 		if (show[y][x] >= '1' && show[y][x] <= '7')
 			numberSpread(mine, show, y, x, show[y][x] - '0', win, row, col);
 
-		break;
-	case  RIGHTMOST_BUTTON_PRESSED:
+	}
+	if (event.operate == right_click && event.action == ma_nothing)
+	{
 		if (show[y][x] == '*' && FCount < getMineCount)
 			show[y][x] = 'F';
-		break;
 	}
 }
 
 void findMine(char** mine, char** show, int row, int col)
 {
-	getPower();
+	gs.open_mouse_mode();
 	// 注：由于扫雷下标从1开始，在 3.游戏操作 中需要变通一下
 	int x = 1; // 横轴移动
 	int y = 1; // 纵轴移动
@@ -194,29 +188,57 @@ void findMine(char** mine, char** show, int row, int col)
 
 	int falseTime = 1;
 	int winTime = 1;
+	char c = 0;
 
+	std::string buf;
+	auto lastClick = std::chrono::steady_clock::now() - std::chrono::seconds(1);
 	while (1)
 	{
+		MouseEvent event;
 		GameSet::cursor(0, 0);
+		int n = gs.platform_read(&c, 1);
+		if (n <= 0) continue;
 
-		ReadConsoleInput(get1, &mouseRecord, 1, &res);
+		// Ctrl+C 在原始模式下不会自动退出，这里手动处理
+		if (c == 0x03) break;
+
+		buf += c;
+
+		if (!buf.empty() && buf[0] == '\033')
+		{
+			if (buf.size() >= 3 && buf[0] == '\033' && buf[1] == '[' && buf[2] == '<' &&
+				(buf.back() == 'M' || buf.back() == 'm'))
+			{
+				event = gs.get_mouse_event(buf);
+				buf.clear();
+			}
+			if (buf.size() > 64) buf.clear();
+		}
+		else
+		{
+			buf.clear();
+		}
+
 		//获取鼠标当前位置
-		y = mouseRecord.Event.MouseEvent.dwMousePosition.Y;
-		x = mouseRecord.Event.MouseEvent.dwMousePosition.X;
-
-		mouseOperate = mouseRecord.Event.MouseEvent.dwButtonState;
+		y = event.mouse_y;
+		x = event.mouse_x;
+		mouseOperate = event.operate;
 
 		// 当win为负数意思为被雷炸死
 		if (win < row * col - getMineCount && win >= 0)
 		{
-			display(show, mine, show, row, col, y, x, time1, &first, &win, mouseOperate);
+			display(show, mine, show, row, col, y, x, time1, &first, &win, event);
 			if ((y == row + 2) && (3 <= x && x <= 14))
 			{
 				printf("***\033[41m  %6s    \033[0m***\n", "返回");
-				if (mouseOperate == FROM_LEFT_1ST_BUTTON_PRESSED)
+				if (event.operate == left_click && event.action == ma_nothing)
 				{
-					GameSet::clear();
-					break;
+					auto now = std::chrono::steady_clock::now();
+					if (std::chrono::duration_cast<std::chrono::milliseconds>(now - lastClick).count() > 166)
+					{
+						GameSet::clear();
+						break;
+					}
 				}
 			}
 			else
@@ -228,20 +250,24 @@ void findMine(char** mine, char** show, int row, int col)
 			if (winTime)
 			{
 				GameSet::clear();
-				getPower();
+				GameSet::open_mouse_mode();
 				winTime = 0;
 			}
-			display(show, mine, show, row, col, y, x, time1, NULL, NULL, 0);
+			display(show, mine, show, row, col, y, x, time1, NULL, NULL, MouseEvent{});
 			printf("**********************\n");
 			printf("******  你赢了  ******\n");
 			printf("**********************\n");
 			if ((y == row + 5) && (5 <= x && x <= 16))
 			{
 				printf("*****\033[41m  %6s    \033[0m*****\n", "返回");
-				if (mouseOperate == FROM_LEFT_1ST_BUTTON_PRESSED)
+				if (event.operate == left_click && event.action == ma_nothing)
 				{
-					GameSet::clear();
-					break;
+					auto now = std::chrono::steady_clock::now();
+					if (std::chrono::duration_cast<std::chrono::milliseconds>(now - lastClick).count() > 166)
+					{
+						GameSet::clear();
+						break;
+					}
 				}
 			}
 			else
@@ -252,26 +278,29 @@ void findMine(char** mine, char** show, int row, int col)
 			if (falseTime)
 			{
 				GameSet::clear();
-				getPower();
+				gs.open_mouse_mode();
 				falseTime = 0;
 			}
-			display(mine, mine, show, row, col, y, x, time1, NULL, NULL, 0);
+			display(mine, mine, show, row, col, y, x, time1, NULL, NULL, MouseEvent{});
 			printf("**********************\n");
 			printf("**很遗憾，你被炸死了**\n");
 			printf("**********************\n");
 			if ((y == row + 5) && (5 <= x && x <= 16))
 			{
 				printf("*****\033[41m  %6s    \033[0m*****\n", "返回");
-				if (mouseOperate == FROM_LEFT_1ST_BUTTON_PRESSED)
+				if (event.operate == left_click && event.action == ma_nothing)
 				{
-					GameSet::clear();
-					break;
+					auto now = std::chrono::steady_clock::now();
+					if (std::chrono::duration_cast<std::chrono::milliseconds>(now - lastClick).count() > 166)
+					{
+						GameSet::clear();
+						break;
+					}
 				}
 			}
 			else
 				printf("*****  %6s    *****\n", "返回");
 		}
-		Sleep(100);
 	}
 }
 
@@ -370,7 +399,7 @@ char** apply(int* rows, int* cols)
 	return arr;
 }
 
-void release(char** arr, int rows, int cols)
+void game_release(char** arr, int rows, int cols)
 {
 	// 先释放一级指针空间
 	for (int i = 0; i < rows; i++)
