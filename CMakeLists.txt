@@ -15,7 +15,7 @@ target_include_directories(GameTest
 	PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/"
 )
 
-add_executable(unit_test "tests/unit_test.cpp" ${GAME_SRC_LISTS})
+add_executable(unit_test "tests/unit_test.cpp" "src/set.cpp")
 target_include_directories(unit_test 
 	PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include/"
 )
