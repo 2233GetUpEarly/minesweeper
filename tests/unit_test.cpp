@@ -65,7 +65,7 @@ void test1()
 {
     GameSet gs;
     gs.open_mouse_mode();
-    printf("点击 / 拖动 / 滚轮，Ctrl+C 退出\r\n");
+    printf("点击 / 拖动 / 滚轮，q 退出\r\n");
 
     std::string buf;
     char c;
@@ -75,7 +75,7 @@ void test1()
         int n = gs.platform_read(&c, 1);
         if (n <= 0) continue;
 
-        if (c == 0x03) break;
+        if (c == 'q') break;
 
         buf += c;
 

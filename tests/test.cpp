@@ -5,22 +5,22 @@
 
 #ifdef _WIN32
 #include <windows.h>
-#include <conio.h>
 #endif
 
 int getMineCount = 0;
+GameSet gs;
 
 void adjustScreen()
 {
 	GameSet::clear();
+	gs.close_mouse_mode();
 	printf("Ctrl + 滑动鼠标滑轮调整大小\n");
 	printf("注意：若实际游戏画面大于程序窗口会出现刷屏哦\n");
 	printf("按任意键返回:>\n");
-	char ch = getch();
+	char ch = getc(stdin);
+	gs.open_mouse_mode();
 	GameSet::clear();
 }
-
-GameSet gs;
 
 void menu1()
 {
@@ -248,6 +248,7 @@ void test()
 	GameSet::hide_cursor();
 	srand((unsigned int)time(NULL)); // 使rand函数产生伪随机数
 	menu1();
+	GameSet::display_cursor();
 }
 
 int main()

@@ -98,7 +98,7 @@ private:
 		HANDLE handle_out = INVALID_HANDLE_VALUE;
 		DWORD old_in_mode = 0;
 		DWORD old_out_mode = 0;
-#elif
+#else
 		termios old_termios;
 #endif
 	};
