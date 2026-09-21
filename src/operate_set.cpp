@@ -1,52 +1,52 @@
-#include <set.hpp>
+#include <game/core/operate_set.hpp>
 #include <stdio.h>
 #include <string>
 #include <cassert>
 
-GameSet::GameSet()
+OperateSet::OperateSet()
 {
 	bool ans = platform_init();
 	assert(ans);
 }
 
-GameSet::~GameSet()
+OperateSet::~OperateSet()
 {
 	platform_restore();
 }
 
-void GameSet::cursor(int x, int y)
+void OperateSet::cursor(int x, int y)
 {
 	std::string x_str = std::to_string(x);
 	std::string y_str = std::to_string(y);
 	printf("\033[%s;%sH", x_str.c_str(), y_str.c_str());
 }
 
-void GameSet::clear()
+void OperateSet::clear()
 {
 	printf("\033[2J\033[3J\033[H");
 }
 
-void GameSet::hide_cursor()
+void OperateSet::hide_cursor()
 {
 	printf("\033[?25l");
 }
 
-void GameSet::display_cursor()
+void OperateSet::display_cursor()
 {
 	printf("\033[?25h");
 }
 
-void GameSet::open_mouse_mode()
+void OperateSet::open_mouse_mode()
 {
 	printf("\033[?1000h\033[?1003h\033[?1006h\n");
 }
 
-void GameSet::close_mouse_mode()
+void OperateSet::close_mouse_mode()
 {
 	printf("\033[?1000l\033[?1003l\033[?1006l\n");
 }
 
-int GameSet::platform_read(char* buf, int len)
+int OperateSet::platform_read(char* buf, int len)
 {
 #ifdef _WIN32
     DWORD read = 0;
@@ -60,7 +60,7 @@ int GameSet::platform_read(char* buf, int len)
 #endif
 }
 
-void GameSet::platform_write(const std::string& str)
+void OperateSet::platform_write(const std::string& str)
 {
 #ifdef _WIN32
     DWORD written = 0;
@@ -70,7 +70,7 @@ void GameSet::platform_write(const std::string& str)
 #endif
 }
 
-MouseEvent GameSet::get_mouse_event(const std::string& seq)
+MouseEvent OperateSet::get_mouse_event(const std::string& seq)
 {
     int cb = 0;
     int cx = 0;
@@ -85,7 +85,7 @@ MouseEvent GameSet::get_mouse_event(const std::string& seq)
     return event;
 }
 
-bool GameSet::parse_sgr_mouse(const std::string& seq, int& cb, int& cx, int& cy, char& term)
+bool OperateSet::parse_sgr_mouse(const std::string& seq, int& cb, int& cx, int& cy, char& term)
 {
     // 期望格式：ESC [ < Cb ; Cx ; Cy (M|m)
     if (seq.size() < 6)
@@ -113,7 +113,7 @@ bool GameSet::parse_sgr_mouse(const std::string& seq, int& cb, int& cx, int& cy,
     return true;
 }
 
-MouseEvent GameSet::report_mouse(int cb, int cx, int cy, char term)
+MouseEvent OperateSet::report_mouse(int cb, int cx, int cy, char term)
 {
     MouseEvent event;
 
@@ -163,7 +163,7 @@ MouseEvent GameSet::report_mouse(int cb, int cx, int cy, char term)
     return event;
 }
 
-bool GameSet::platform_init()
+bool OperateSet::platform_init()
 {
 #ifdef _WIN32
     mouse_data_.handle_in = GetStdHandle(STD_INPUT_HANDLE);
@@ -200,7 +200,7 @@ bool GameSet::platform_init()
 #endif
 }
 
-void GameSet::platform_restore()
+void OperateSet::platform_restore()
 {
 #ifdef _WIN32
     if (mouse_data_.handle_in != INVALID_HANDLE_VALUE)

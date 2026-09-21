@@ -1,22 +1,22 @@
-#include <game_ui.hpp>
-#include <set.hpp>
+#include <game/show/game_show.hpp>
+#include <game/core/operate_set.hpp>
 #include <chrono>
 
-GameUI::GameUI(Game& game)
+GameShow::GameShow(Game& game)
 	:game_(game)
 {
 
 }
 
-GameUI::~GameUI()
+GameShow::~GameShow()
 {
 
 }
 
-void GameUI::run()
+void GameShow::run()
 {
 	int num = option();
-	GameSet::clear();
+	OperateSet::clear();
 	if (num < 0)
 	{
 		return;
@@ -31,19 +31,19 @@ void GameUI::run()
 	find_mine();
 }
 
-void GameUI::adjust_screen()
+void GameShow::adjust_screen()
 {
-	GameSet::clear();
+	OperateSet::clear();
 	game_set_.close_mouse_mode();
 	printf("Ctrl + 滑动鼠标滑轮调整大小\n");
 	printf("注意：若实际游戏画面大于程序窗口会出现刷屏哦\n");
 	printf("按任意键返回:>\n");
 	char ch = getc(stdin);
 	game_set_.open_mouse_mode();
-	GameSet::clear();
+	OperateSet::clear();
 }
 
-void GameUI::main_menu()
+void GameShow::main_menu()
 {
 	game_set_.open_mouse_mode();
 	char a = 0;
@@ -58,7 +58,7 @@ void GameUI::main_menu()
 	while (true)
 	{
 		MouseEvent event;
-		GameSet::cursor(0, 0);
+		OperateSet::cursor(0, 0);
 		int n = game_set_.platform_read(&c, 1);
 		//int n = platformRead(&c, 1);
 		if (n <= 0) continue;
@@ -125,7 +125,7 @@ void GameUI::main_menu()
 				if (std::chrono::duration_cast<std::chrono::milliseconds>(now - lastClick).count() > 166)
 				{
 					// 太近了，忽略
-					GameSet::clear();	// 先清屏
+					OperateSet::clear();	// 先清屏
 					run();
 				}
 			}
@@ -135,7 +135,7 @@ void GameUI::main_menu()
 			}
 			if ((y == 3) && (4 <= x && x <= 21))
 			{
-				GameSet::clear(); // 先清屏
+				OperateSet::clear(); // 先清屏
 				printf("%s\n", "退出游戏");
 				exitgame = 1;
 			}
@@ -147,7 +147,7 @@ void GameUI::main_menu()
 	game_set_.close_mouse_mode();
 }
 
-int GameUI::option()
+int GameShow::option()
 {
 	game_set_.open_mouse_mode();
 	std::string buf;
@@ -158,7 +158,7 @@ int GameUI::option()
 	while (1)
 	{
 		MouseEvent event;
-		GameSet::cursor(0, 0);
+		OperateSet::cursor(0, 0);
 		int n = game_set_.platform_read(&c, 1);
 		//int n = platformRead(&c, 1);
 		if (n <= 0) continue;
@@ -240,7 +240,7 @@ int GameUI::option()
 	return 1;
 }
 
-int GameUI::display(Game::Array& arr, int y, int x, MouseEvent event)
+int GameShow::display(Game::Array& arr, int y, int x, MouseEvent event)
 {
 	int FCount = 0;
 	// 将游戏时间生命周期延长，防止游戏完成打印为0
@@ -321,7 +321,7 @@ int GameUI::display(Game::Array& arr, int y, int x, MouseEvent event)
 	return 0;
 }
 
-void GameUI::mouse_operate_game(int y, int x, int flag_count, MouseEvent event)
+void GameShow::mouse_operate_game(int y, int x, int flag_count, MouseEvent event)
 {
 	if (event.operate == left_click && event.action == ma_nothing)
 	{
@@ -359,7 +359,7 @@ void GameUI::mouse_operate_game(int y, int x, int flag_count, MouseEvent event)
 	}
 }
 
-void GameUI::find_mine()
+void GameShow::find_mine()
 {
 	game_set_.open_mouse_mode();
 	// 注：由于扫雷下标从1开始，在 3.游戏操作 中需要变通一下
@@ -379,7 +379,7 @@ void GameUI::find_mine()
 	while (1)
 	{
 		MouseEvent event;
-		GameSet::cursor(0, 0);
+		OperateSet::cursor(0, 0);
 		int n = game_set_.platform_read(&c, 1);
 		if (n <= 0) continue;
 
@@ -425,7 +425,7 @@ void GameUI::find_mine()
 					auto now = std::chrono::steady_clock::now();
 					if (std::chrono::duration_cast<std::chrono::milliseconds>(now - lastClick).count() > 166)
 					{
-						GameSet::clear();
+						OperateSet::clear();
 						break;
 					}
 				}
@@ -438,8 +438,8 @@ void GameUI::find_mine()
 		{
 			if (winTime)
 			{
-				GameSet::clear();
-				GameSet::open_mouse_mode();
+				OperateSet::clear();
+				OperateSet::open_mouse_mode();
 				winTime = 0;
 			}
 			display(game_.get_game_data().show, y, x, MouseEvent{});
@@ -454,7 +454,7 @@ void GameUI::find_mine()
 					auto now = std::chrono::steady_clock::now();
 					if (std::chrono::duration_cast<std::chrono::milliseconds>(now - lastClick).count() > 166)
 					{
-						GameSet::clear();
+						OperateSet::clear();
 						break;
 					}
 				}
@@ -466,7 +466,7 @@ void GameUI::find_mine()
 		{
 			if (falseTime)
 			{
-				GameSet::clear();
+				OperateSet::clear();
 				game_set_.open_mouse_mode();
 				falseTime = 0;
 			}
@@ -482,7 +482,7 @@ void GameUI::find_mine()
 					auto now = std::chrono::steady_clock::now();
 					if (std::chrono::duration_cast<std::chrono::milliseconds>(now - lastClick).count() > 166)
 					{
-						GameSet::clear();
+						OperateSet::clear();
 						break;
 					}
 				}

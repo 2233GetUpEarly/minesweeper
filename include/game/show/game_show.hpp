@@ -1,15 +1,15 @@
 #pragma once
 
-#include <game.hpp>
-#include <set.hpp>
+#include <game/game.hpp>
+#include <game/core/operate_set.hpp>
 
-class GameUI
+class GameShow
 {
 public:
 
-	GameUI(Game&);
+	GameShow(Game&);
 
-	~GameUI();
+	~GameShow();
 
 	void run();
 
@@ -27,6 +27,6 @@ public:
 
 private:
 
-	GameSet game_set_;
+	OperateSet game_set_;
 	Game& game_;
 };

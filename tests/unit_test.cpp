@@ -1,6 +1,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 
-#include <set.hpp>
+#include <game/core/operate_set.hpp>
 #include <string>
 #include <cstdio>
 
@@ -63,7 +63,7 @@ int main()
 
 void test1()
 {
-    GameSet gs;
+    OperateSet gs;
     gs.open_mouse_mode();
     printf("点击 / 拖动 / 滚轮，q 退出\r\n");
 

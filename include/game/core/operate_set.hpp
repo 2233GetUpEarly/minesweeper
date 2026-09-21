@@ -53,13 +53,13 @@ struct MouseEvent
 	int mouse_y = -1;
 };
 
-class GameSet
+class OperateSet
 {
 public:
 
-	GameSet();
+	OperateSet();
 
-	~GameSet();
+	~OperateSet();
 
 	static void cursor(int x, int y);
 

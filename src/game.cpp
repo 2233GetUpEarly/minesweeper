@@ -1,5 +1,5 @@
-#include <game.hpp>
-#include <set.hpp>
+#include <game/game.hpp>
+#include <game/core/operate_set.hpp>
 #include <chrono>
 
 Game::Game()

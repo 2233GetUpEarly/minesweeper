@@ -1,6 +1,6 @@
-#include "game.hpp"
-#include <set.hpp>
-#include <game_ui.hpp>
+#include <game/game.hpp>
+#include <game/core/operate_set.hpp>
+#include <game/show/game_show.hpp>
 #include <iostream>
 #include <chrono>
 
@@ -10,12 +10,12 @@
 
 void test()
 {
-	GameSet::hide_cursor();
+	OperateSet::hide_cursor();
 	srand((unsigned int)time(NULL)); // 使rand函数产生伪随机数
 	Game game;
-	GameUI game_ui(game);
+	GameShow game_ui(game);
 	game_ui.main_menu();
-	GameSet::display_cursor();
+	OperateSet::display_cursor();
 }
 
 int main()
