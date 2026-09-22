@@ -1,21 +1,21 @@
-#include <game/show/game_show.hpp>
+#include <game/ui/game_ui.hpp>
 #include <game/logic/game_logic.hpp>
 #include <game/core/operate_set.hpp>
 #include <chrono>
 
-GameShow::GameShow(GameLogic& game_logic, const GameData& game_data)
+GameUI::GameUI(GameLogic& game_logic, const GameData& game_data)
 	:game_logic_(game_logic)
-	,game_data_(game_data)
+	, game_data_(game_data)
 {
 
 }
 
-GameShow::~GameShow()
+GameUI::~GameUI()
 {
 
 }
 
-void GameShow::run()
+void GameUI::run()
 {
 	int select = option();
 	OperateSet::clear();
@@ -28,7 +28,7 @@ void GameShow::run()
 	find_mine();
 }
 
-void GameShow::adjust_screen()
+void GameUI::adjust_screen()
 {
 	OperateSet::clear();
 	game_set_.close_mouse_mode();
@@ -40,7 +40,7 @@ void GameShow::adjust_screen()
 	OperateSet::clear();
 }
 
-void GameShow::main_menu()
+void GameUI::main_menu()
 {
 	game_set_.open_mouse_mode();
 	char a = 0;
@@ -57,7 +57,6 @@ void GameShow::main_menu()
 		MouseEvent event;
 		OperateSet::cursor(0, 0);
 		int n = game_set_.platform_read(&c, 1);
-		//int n = platformRead(&c, 1);
 		if (n <= 0) continue;
 
 		// Ctrl+C 在原始模式下不会自动退出，这里手动处理
@@ -73,7 +72,6 @@ void GameShow::main_menu()
 				(buf.back() == 'M' || buf.back() == 'm'))
 			{
 				event = game_set_.get_mouse_event(buf);
-				//std::cout << event.mouse_x << " " << event.mouse_y << std::endl;
 				buf.clear();
 			}
 			// 容错：如果累积过长仍不成序列，丢弃，防止内存增长
@@ -144,7 +142,7 @@ void GameShow::main_menu()
 	game_set_.close_mouse_mode();
 }
 
-int GameShow::option()
+int GameUI::option()
 {
 	game_set_.open_mouse_mode();
 	std::string buf;
@@ -237,7 +235,7 @@ int GameShow::option()
 	return -1;
 }
 
-int GameShow::display(const Array& arr, int y, int x, MouseEvent event)
+int GameUI::display(const Array& arr, int y, int x, MouseEvent event)
 {
 	int FCount = 0;
 	// 将游戏时间生命周期延长，防止游戏完成打印为0
@@ -318,7 +316,7 @@ int GameShow::display(const Array& arr, int y, int x, MouseEvent event)
 	return 0;
 }
 
-void GameShow::mouse_operate_game(int y, int x, int flag_count, MouseEvent event)
+void GameUI::mouse_operate_game(int y, int x, int flag_count, MouseEvent event)
 {
 	if (event.operate == left_click && event.action == ma_nothing)
 	{
@@ -356,7 +354,7 @@ void GameShow::mouse_operate_game(int y, int x, int flag_count, MouseEvent event
 	}
 }
 
-void GameShow::find_mine()
+void GameUI::find_mine()
 {
 	game_set_.open_mouse_mode();
 	// 注：由于扫雷下标从1开始，在 3.游戏操作 中需要变通一下

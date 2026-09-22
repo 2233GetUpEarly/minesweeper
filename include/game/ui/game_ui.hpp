@@ -7,13 +7,13 @@
 
 class GameLogic;
 
-class GameShow
+class GameUI
 {
 public:
 
-	GameShow(GameLogic&, const GameData&);
+	GameUI(GameLogic&, const GameData&);
 
-	~GameShow();
+	~GameUI();
 
 	void run();
 

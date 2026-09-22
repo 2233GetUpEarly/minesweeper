@@ -1,7 +1,7 @@
 #pragma once
 
 #include <game/logic/game_logic.hpp>
-#include <game/show/game_show.hpp>
+#include <game/ui/game_ui.hpp>
 
 struct MouseEvent;
 
@@ -19,6 +19,6 @@ private:
 
 	GameData game_data_;
 	GameLogic game_logic_;
-	GameShow game_show_;
+	GameUI game_show_;
 };
 
