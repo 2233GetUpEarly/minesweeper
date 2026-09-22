@@ -1,13 +1,17 @@
 #pragma once
 
-#include <game/game.hpp>
+#include <game/core/game_data.hpp>
 #include <game/core/operate_set.hpp>
+
+#include <utility>
+
+class GameLogic;
 
 class GameShow
 {
 public:
 
-	GameShow(Game&);
+	GameShow(GameLogic&, const GameData&);
 
 	~GameShow();
 
@@ -19,7 +23,7 @@ public:
 
 	int option();
 
-	int display(Game::Array& arr, int y, int x, MouseEvent event);
+	int display(const Array& arr, int y, int x, MouseEvent event);
 
 	void find_mine();
 
@@ -28,5 +32,6 @@ public:
 private:
 
 	OperateSet game_set_;
-	Game& game_;
+	GameLogic& game_logic_;
+	const GameData& game_data_;
 };

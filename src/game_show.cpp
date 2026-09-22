@@ -1,9 +1,11 @@
 #include <game/show/game_show.hpp>
+#include <game/logic/game_logic.hpp>
 #include <game/core/operate_set.hpp>
 #include <chrono>
 
-GameShow::GameShow(Game& game)
-	:game_(game)
+GameShow::GameShow(GameLogic& game_logic, const GameData& game_data)
+	:game_logic_(game_logic)
+	,game_data_(game_data)
 {
 
 }
@@ -15,19 +17,14 @@ GameShow::~GameShow()
 
 void GameShow::run()
 {
-	int num = option();
+	int select = option();
 	OperateSet::clear();
-	if (num < 0)
+	if (select < 0)
 	{
 		return;
 	}
-	game_.get_game_data().mine = std::vector<std::vector<char>>(game_.get_game_data().rows, std::vector<char>(game_.get_game_data().cols));
-	game_.get_game_data().show = std::vector<std::vector<char>>(game_.get_game_data().rows, std::vector<char>(game_.get_game_data().cols));
-	game_.get_mine(num);
-	game_.get_game_data().row = game_.get_game_data().rows - 2;
-	game_.get_game_data().col = game_.get_game_data().cols - 2;
-	game_.init_board(game_.get_game_data().mine, '0');
-	game_.init_board(game_.get_game_data().show, '*');
+	game_logic_.init_board(mine_board, '0');
+	game_logic_.init_board(show_board, '*');
 	find_mine();
 }
 
@@ -214,42 +211,42 @@ int GameShow::option()
 		{
 			if ((y == 1) && (4 <= x && x <= 22))
 			{
-				game_.get_game_data().rows = 11;
-				game_.get_game_data().cols = 11;
+				game_logic_.set_mine_count(10);
+				game_logic_.set_board_area(11, 11);
 				return 1;
 			}
 			if ((y == 2) && (4 <= x && x <= 22))
 			{
-				game_.get_game_data().rows = 18;
-				game_.get_game_data().cols = 18;
-				return 2;
+				game_logic_.set_mine_count(40);
+				game_logic_.set_board_area(18, 18);
+				return 1;
 			}
 			if ((y == 3) && (4 <= x && x <= 22))
 			{
-				game_.get_game_data().rows = 18;
-				game_.get_game_data().cols = 32;
-				return 3;
+				game_logic_.set_mine_count(99);
+				game_logic_.set_board_area(18, 32);
+				return 1;
 			}
 			if ((y == 4) && (4 <= x && x <= 22))
 			{
-				return -1;
+				break;
 			}
 		}
 	}
 	game_set_.close_mouse_mode();
-	return 1;
+	return -1;
 }
 
-int GameShow::display(Game::Array& arr, int y, int x, MouseEvent event)
+int GameShow::display(const Array& arr, int y, int x, MouseEvent event)
 {
 	int FCount = 0;
 	// 将游戏时间生命周期延长，防止游戏完成打印为0
 	static int time2 = 0;
-	int win = game_.get_game_data().win;
-	int time1 = game_.get_game_data().begin_time;
-	int col = game_.get_game_data().col;
-	int row = game_.get_game_data().row;
-	int mine_count = game_.get_game_data().mine_count;
+	int win = game_logic_.get_win();
+	int time1 = game_logic_.get_begin_time();
+	int col = game_logic_.get_col();
+	int row = game_logic_.get_row();
+	int mine_count = game_logic_.get_mine_count();
 
 	if (win != NULL)
 	{
@@ -325,37 +322,37 @@ void GameShow::mouse_operate_game(int y, int x, int flag_count, MouseEvent event
 {
 	if (event.operate == left_click && event.action == ma_nothing)
 	{
-		if (game_.get_game_data().show[y][x] == '*')                    // 判断输入的坐标是否被占用
+		if (game_data_.show[y][x] == '*')                    // 判断输入的坐标是否被占用
 		{
-			if (game_.get_game_data().first_operate)
+			if (game_data_.first_operate)
 			{
-				game_.set_mine(y, x);
-				game_.get_game_data().first_operate = 0;
+				game_logic_.set_mine(y, x);
+				game_logic_.set_first_operate(0);
 			}
-			if (game_.get_game_data().mine[y][x] == '1')                // 判断输入的坐标是否是雷
+			if (game_data_.mine[y][x] == '1')                // 判断输入的坐标是否是雷
 			{
-				game_.get_game_data().win = -9;
+				game_logic_.set_win(-9);
 			}
 			else
 			{
-				int count = game_.mine_count(y, x);
-				game_.get_game_data().show[y][x] = count + '0';
-				game_.get_game_data().win++;
-				game_.spread(y, x);
+				int count = game_logic_.mine_count(y, x);
+				game_logic_.set_board_one_char(show_board, y, x, count + '0');
+				game_logic_.set_win(game_data_.win + 1);
+				game_logic_.spread(y, x);
 			}
 		}
 
-		if (game_.get_game_data().show[y][x] == 'F')
-			game_.get_game_data().show[y][x] = '*';
+		if (game_data_.show[y][x] == 'F')
+			game_logic_.set_board_one_char(show_board, y, x, '*');
 
-		if (game_.get_game_data().show[y][x] >= '1' && game_.get_game_data().show[y][x] <= '7')
-			game_.number_spread(y, x, game_.get_game_data().show[y][x] - '0');
+		if (game_data_.show[y][x] >= '1' && game_data_.show[y][x] <= '7')
+			game_logic_.number_spread(y, x, game_data_.show[y][x] - '0');
 
 	}
 	if (event.operate == right_click && event.action == ma_nothing)
 	{
-		if (game_.get_game_data().show[y][x] == '*' && flag_count < game_.get_game_data().mine_count)
-			game_.get_game_data().show[y][x] = 'F';
+		if (game_data_.show[y][x] == '*' && flag_count < game_data_.mine_count)
+			game_logic_.set_board_one_char(show_board, y, x, 'F');
 	}
 }
 
@@ -365,10 +362,10 @@ void GameShow::find_mine()
 	// 注：由于扫雷下标从1开始，在 3.游戏操作 中需要变通一下
 	int x = 1; // 横轴移动
 	int y = 1; // 纵轴移动
-	game_.get_game_data().begin_time = (int)time(NULL); // 获取进入游戏的时间
+	game_logic_.set_begin_time((int)time(NULL)); // 获取进入游戏的时间
 	int mouseOperate = 0;
-	game_.get_game_data().first_operate = 1;
-	game_.get_game_data().win = 0;
+	game_logic_.set_first_operate(1);
+	game_logic_.set_win(0);
 
 	int falseTime = 1;
 	int winTime = 1;
@@ -408,15 +405,15 @@ void GameShow::find_mine()
 		x = event.mouse_x;
 		mouseOperate = event.operate;
 
-		int row = game_.get_game_data().row;
-		int col = game_.get_game_data().col;
-		int mine_count = game_.get_game_data().mine_count;
-		int win = game_.get_game_data().win;
+		int row = game_data_.row;
+		int col = game_data_.col;
+		int mine_count = game_data_.mine_count;
+		int win = game_data_.win;
 
 		// 当win为负数意思为被雷炸死
 		if (win < row * col - mine_count && win >= 0)
 		{
-			display(game_.get_game_data().show, y, x, event);
+			display(game_data_.show, y, x, event);
 			if ((y == row + 2) && (3 <= x && x <= 14))
 			{
 				printf("***\033[41m  %6s    \033[0m***\n", "返回");
@@ -442,7 +439,7 @@ void GameShow::find_mine()
 				OperateSet::open_mouse_mode();
 				winTime = 0;
 			}
-			display(game_.get_game_data().show, y, x, MouseEvent{});
+			display(game_data_.show, y, x, MouseEvent{});
 			printf("**********************\n");
 			printf("******  你赢了  ******\n");
 			printf("**********************\n");
@@ -470,7 +467,7 @@ void GameShow::find_mine()
 				game_set_.open_mouse_mode();
 				falseTime = 0;
 			}
-			display(game_.get_game_data().mine, y, x, MouseEvent{});
+			display(game_data_.mine, y, x, MouseEvent{});
 			printf("**********************\n");
 			printf("**很遗憾，你被炸死了**\n");
 			printf("**********************\n");
