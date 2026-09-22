@@ -1,5 +1,7 @@
 #pragma once
 
+#include <game/ui/game_show.hpp>
+
 #include <game/core/game_data.hpp>
 #include <game/core/operate_set.hpp>
 
@@ -23,15 +25,19 @@ public:
 
 	int option();
 
-	int display(const Array& arr, int y, int x, MouseEvent event);
-
 	void find_mine();
 
 	void mouse_operate_game(int y, int x, int flag_count, MouseEvent event);
 
 private:
 
+	MouseEvent parse_str(std::string& buf);
+
+private:
+
 	OperateSet game_set_;
 	GameLogic& game_logic_;
 	const GameData& game_data_;
+	GameShow game_show_;
 };
+
