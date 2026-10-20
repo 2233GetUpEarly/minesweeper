@@ -8,7 +8,7 @@ GameUI::GameUI(GameLogic& game_logic, const GameData& game_data)
 	, game_data_(game_data)
 	, game_show_(MouseOperateFunc{ this })
 {
-
+	setvbuf(stdout, NULL, _IOFBF, (1 << 10));
 }
 
 GameUI::~GameUI()
@@ -34,6 +34,7 @@ void GameUI::adjust_screen()
 	OperateSet::clear();
 	game_set_.close_mouse_mode();
 	game_show_.adjust_screen_show();
+	fflush(stdout);
 	char ch = getc(stdin);
 	game_set_.open_mouse_mode();
 	OperateSet::clear();
@@ -109,6 +110,8 @@ void GameUI::main_menu()
 			if ((y == 2) && (4 <= x && x <= 21))
 			{
 				adjust_screen();
+				game_show_.main_menu_show(y, x);
+				fflush(stdout);
 			}
 			if ((y == 3) && (4 <= x && x <= 21))
 			{

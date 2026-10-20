@@ -49,6 +49,7 @@ void OperateSet::close_mouse_mode()
 int OperateSet::platform_read(char* buf, int len)
 {
 #ifdef _WIN32
+    fflush(stdout);
     DWORD read = 0;
     if (!ReadFile(mouse_data_.handle_in, buf, len, &read, nullptr))
     {
