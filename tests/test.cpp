@@ -6,6 +6,8 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#elif __linux__
+#include <signal.h>
 #endif
 
 void test()
@@ -22,6 +24,8 @@ int main()
 #ifdef _WIN32
 	SetConsoleOutputCP(65001);
 	SetConsoleCP(65001);
+#elif __linux__
+	signal(SIGINT, SIG_IGN);
 #endif
 
 	test();
