@@ -24,6 +24,8 @@ int main()
 #ifdef _WIN32
 	SetConsoleOutputCP(65001);
 	SetConsoleCP(65001);
+
+	SetConsoleCtrlHandler(NULL, TRUE);
 #elif __linux__
 	signal(SIGINT, SIG_IGN);
 #endif
