@@ -1,0 +1,40 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 21,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "debug-windows",
+      "displayName": "debug (VS2026 + vcpkg)",
+      "generator": "Visual Studio 18 2026",
+      "binaryDir": "build",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "$env{MY_VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "release-windows",
+      "displayName": "release (VS2026 + vcpkg)",
+      "generator": "Visual Studio 18 2026",
+      "binaryDir": "build-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_TOOLCHAIN_FILE": "$env{MY_VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "debug-windows",
+      "configurePreset": "debug-windows"
+    },
+    {
+      "name": "release-windows",
+      "configurePreset": "release-windows"
+    }
+  ]
+}
