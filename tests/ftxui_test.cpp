@@ -9,15 +9,12 @@
 
 void ftxui_test()
 {
+	srand((unsigned int)time(NULL)); // 使rand函数产生伪随机数
 	GameData game_data;
 	GameLogic game_logic(game_data);
 
 	FtxuiGameUI fgame(game_logic, game_data);
 	fgame.main_menu();
-
-	srand((unsigned int)time(NULL)); // 使rand函数产生伪随机数
-	//Game game;
-	//game.run();
 }
 
 int main()
